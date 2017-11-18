@@ -1,4 +1,4 @@
-package demo;
+package demofinal;
 
 public enum MessageType {
     WARNING,

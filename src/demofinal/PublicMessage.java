@@ -1,4 +1,4 @@
-package demo;
+package demofinal;
 
 public class PublicMessage extends Message {
 
