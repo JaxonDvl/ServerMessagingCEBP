@@ -21,15 +21,20 @@ public class Client extends Thread {
         maxClientsCount = clientList.size();
     }
     public synchronized void sendMessage( String receiver,String message,ArrayList<Client> clientList){
+        System.out.println(this.clientList.size());
         for (Client client : clientList) {
             if (client != this && client.clientName != null && client.clientName.equals(receiver)) {
-                client.outputStream.println("<" + receiver + "> " + message);
-                this.outputStream.println(">" + receiver + "> " + message);
+                client.outputStream.println("<" + this.clientName + "> " + message);
+                this.outputStream.println(">" +receiver + "> " + message);
                 break;
             }
         }
 
     }
+//    public Client getClient(String clientName){
+//        clientList.g
+//
+//    }
     public void run() {
         int maxClientsCount = this.maxClientsCount;
         ArrayList<Client> clientThreads = this.clientList;
@@ -77,17 +82,9 @@ public class Client extends Thread {
                     if (words.length > 1 && words[1] != null) {
                         words[1] = words[1].trim();
                         if (!words[1].isEmpty()) {
-                            sendMessage(words[0],words[1],clientThreads);
-//                            synchronized (this) {
-//                                for (Client client : clientThreads) {
-//                                    if (client != this && client.clientName != null && client.clientName.equals(words[0])) {
-//
-//                                        client.outputStream.println("<" + name + "> " + words[1]);
-//                                        this.outputStream.println(">" + name + "> " + words[1]);
-//                                        break;
-//                                    }
-//                                }
-//                            }
+//                             Message message = new PrivateMessage(words[0],MessageType.INFO,words[1]);
+//                            sendMessage(message ,clientThreads);
+                            sendMessage(words[0],words[1] ,clientThreads);
                         }
                     }
                 } else {
