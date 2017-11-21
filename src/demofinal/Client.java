@@ -4,6 +4,9 @@ package demofinal;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends Thread {
 
@@ -14,27 +17,44 @@ public class Client extends Thread {
     private Socket clientSocket = null;
     private final ArrayList<Client> clientList;
     private int maxClientsCount;
-
+    private BlockingQueue<PrivateMessage> privateMessage = new ArrayBlockingQueue<PrivateMessage>(5);
     public Client(Socket clientSocket, ArrayList<Client> clientList) {
         this.clientSocket = clientSocket;
         this.clientList = clientList;
         maxClientsCount = clientList.size();
     }
-    public synchronized void sendMessage( String receiver,String message,ArrayList<Client> clientList){
-        System.out.println(this.clientList.size());
-        for (Client client : clientList) {
-            if (client != this && client.clientName != null && client.clientName.equals(receiver)) {
-                client.outputStream.println("<" + this.clientName + "> " + message);
-                this.outputStream.println(">" +receiver + "> " + message);
-                break;
-            }
-        }
+    public synchronized void sendMessage(String sender, String receiver,String message){
+        PrivateMessage msg = new PrivateMessage(sender, receiver, MessageType.INFO , message);
+        this.privateMessage.offer(msg);
+//        System.out.println(privateMessage.size());
+//        for (Client client : clientList) {
+//            if (client != this && client.clientName != null && client.clientName.equals(receiver)) {
+//                client.outputStream.println("<" + this.clientName + "> " + message);
+//                this.outputStream.println(">" +receiver + "> " + message);
+//                break;
+//            }
+//        }
 
     }
-//    public Client getClient(String clientName){
-//        clientList.g
-//
-//    }
+    public void getMessage() {
+        PrivateMessage msg = null;
+        try {
+            msg = this.privateMessage.poll(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if(msg != null){
+            for (Client client : clientList) {
+                if (client != this && client.clientName != null && client.clientName.equals(msg.getReceiver())) {
+                    client.outputStream.println("<" + msg.getSender() + "> " + msg.getMessage());
+//                    client.outputStream.println("<" + this.clientName + "> " + msg.getMessage());
+//                    this.outputStream.println(">" +receiver + "> " + message);
+                    break;
+                }
+            }
+        }
+    }
+
     public void run() {
         int maxClientsCount = this.maxClientsCount;
         ArrayList<Client> clientThreads = this.clientList;
@@ -53,8 +73,8 @@ public class Client extends Thread {
                 }
             }
 
-            outputStream.println("Welcome " + name
-                    + " to our chat room.\nTo leave enter /quit in a new line.");
+            outputStream.println("Hy " + name
+                    + " \nTo leave enter /exit");
 
             synchronized (this) {
                 for (Client client : clientThreads) {
@@ -73,7 +93,7 @@ public class Client extends Thread {
       /* Start the conversation. */
             while (true) {
                 String line = inputStream.readLine();
-                if (line.startsWith("/quit")) {
+                if (line.startsWith("/exit")) {
                     break;
                 }
         /* If the message is private sent it to the given client. */
@@ -84,7 +104,8 @@ public class Client extends Thread {
                         if (!words[1].isEmpty()) {
 //                             Message message = new PrivateMessage(words[0],MessageType.INFO,words[1]);
 //                            sendMessage(message ,clientThreads);
-                            sendMessage(words[0],words[1] ,clientThreads);
+                            sendMessage(this.clientName,words[0],words[1]);
+                            getMessage();
                         }
                     }
                 } else {
@@ -101,13 +122,13 @@ public class Client extends Thread {
             synchronized (this) {
                 for (Client client : clientThreads) {
                     if (client != this && client.clientName != null) {
-                        client.outputStream.println("*** The user " + name
-                                + " is leaving the chat room !!! ***");
+                        client.outputStream.println("User  =>" + name
+                                + " is offline");
 
                     }
                 }
             }
-            outputStream.println("*** Bye " + name + " ***");
+            outputStream.println("=> Logged out " + name);
 
       /*
        * Clean up. Set the current thread variable to null so that a new client

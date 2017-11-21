@@ -51,7 +51,7 @@ public class ClientConnection implements Runnable{
         try {
             while ((responseLine = inputStream.readLine()) != null) {
                 System.out.println(responseLine);
-                if (responseLine.indexOf("*** Bye") != -1)
+                if (responseLine.indexOf("=> Logged out") != -1)
                     break;
             }
             closed = true;

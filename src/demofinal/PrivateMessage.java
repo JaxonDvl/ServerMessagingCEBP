@@ -2,10 +2,18 @@ package demofinal;
 
 public class PrivateMessage extends Message {
 
-    String receiver;
+    private String receiver;
+    private String sender;
 
-    public PrivateMessage(String receiver, MessageType messageType, String message) {
+    public PrivateMessage(String sender, String receiver, MessageType messageType, String message) {
         super(messageType, message);
         this.receiver = receiver;
+        this.sender = sender;
+    }
+    public String getReceiver(){
+        return this.receiver;
+    }
+    public String getSender() {
+        return this.sender;
     }
 }
