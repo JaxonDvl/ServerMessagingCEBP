@@ -4,6 +4,7 @@ package demofinal;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,7 @@ public class Client extends Thread {
     private final ArrayList<Client> clientList;
     private int maxClientsCount;
     private BlockingQueue<PrivateMessage> privateMessage = new ArrayBlockingQueue<PrivateMessage>(5);
+    private static List<PublicMessage> publicMessage = new ArrayList<PublicMessage> (10);
     public Client(Socket clientSocket, ArrayList<Client> clientList) {
         this.clientSocket = clientSocket;
         this.clientList = clientList;
@@ -26,15 +28,10 @@ public class Client extends Thread {
     public synchronized void sendMessage(String sender, String receiver,String message){
         PrivateMessage msg = new PrivateMessage(sender, receiver, MessageType.INFO , message);
         this.privateMessage.offer(msg);
-//        System.out.println(privateMessage.size());
-//        for (Client client : clientList) {
-//            if (client != this && client.clientName != null && client.clientName.equals(receiver)) {
-//                client.outputStream.println("<" + this.clientName + "> " + message);
-//                this.outputStream.println(">" +receiver + "> " + message);
-//                break;
-//            }
-//        }
-
+    }
+    private void publish(String message) {
+        PublicMessage msg = new PublicMessage(MessageType.INFO, message);
+        publicMessage.add(msg);
     }
     public void getMessage() {
         PrivateMessage msg = null;
@@ -47,18 +44,15 @@ public class Client extends Thread {
             for (Client client : clientList) {
                 if (client != this && client.clientName != null && client.clientName.equals(msg.getReceiver())) {
                     client.outputStream.println("<" + msg.getSender() + "> " + msg.getMessage());
-//                    client.outputStream.println("<" + this.clientName + "> " + msg.getMessage());
-//                    this.outputStream.println(">" +receiver + "> " + message);
                     break;
                 }
             }
         }
     }
 
-    public void run() {
-        int maxClientsCount = this.maxClientsCount;
-        ArrayList<Client> clientThreads = this.clientList;
 
+    public void run() {
+        ArrayList<Client> clientThreads = this.clientList;
         try {
             inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             outputStream = new PrintStream(clientSocket.getOutputStream());
@@ -102,19 +96,21 @@ public class Client extends Thread {
                     if (words.length > 1 && words[1] != null) {
                         words[1] = words[1].trim();
                         if (!words[1].isEmpty()) {
-//                             Message message = new PrivateMessage(words[0],MessageType.INFO,words[1]);
-//                            sendMessage(message ,clientThreads);
                             sendMessage(this.clientName,words[0],words[1]);
                             getMessage();
                         }
                     }
-                } else {
+                } else if(line.startsWith("/publish")) {
           /* The message is public, broadcast it to all other clients. */
+                    String[] words = line.split("=", 2);
                     synchronized (this) {
-                        for (Client client : clientThreads) {
-                            if (client.clientName != null) {
-                                client.outputStream.println("<" + name + "> " + line);
-                            }
+                        publish(words[1]);
+                    }
+                } else if(line.startsWith("/read")) {
+                    System.out.println("called from"+this.clientName);
+                    synchronized (this) {
+                        for(PublicMessage msg : publicMessage) {
+                            this.outputStream.println(msg.getMessage());
                         }
                     }
                 }
@@ -150,4 +146,5 @@ public class Client extends Thread {
         } catch (IOException e) {
         }
     }
+
 }
