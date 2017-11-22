@@ -19,12 +19,8 @@ public class Client extends Thread {
     private final ArrayList<Client> clientList;
     private static final int maxClientsCount = 10;
     private BlockingQueue<PrivateMessage> privateMessage = new ArrayBlockingQueue<PrivateMessage>(5);
-<<<<<<< HEAD
     private static List<PublicMessage> publicMessage = new ArrayList<PublicMessage>(maxClientsCount);
     
-=======
-    private static List<PublicMessage> publicMessage = new ArrayList<PublicMessage> (10);
->>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
     public Client(Socket clientSocket, ArrayList<Client> clientList) {
         this.clientSocket = clientSocket;
         this.clientList = clientList;
@@ -33,13 +29,8 @@ public class Client extends Thread {
         PrivateMessage msg = new PrivateMessage(sender, receiver, message);
         this.privateMessage.offer(msg);
     }
-<<<<<<< HEAD
     private void publish(String header, String message) {
         PublicMessage msg = new PublicMessage(header, message);
-=======
-    private void publish(String message) {
-        PublicMessage msg = new PublicMessage(MessageType.INFO, message);
->>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
         publicMessage.add(msg);
     }
     public void getMessage() {
@@ -110,7 +101,6 @@ public class Client extends Thread {
                         }
                     }
                 } else if(line.startsWith("/publish")) {
-<<<<<<< HEAD
           /* The message is a topic, broadcast it to all other clients. */
                     String[] topic = line.split("=", 3);
                     synchronized (this) {
@@ -125,19 +115,6 @@ public class Client extends Thread {
                     	else {
                     		displayTopicMessage(topic);
                     	}
-=======
-          /* The message is public, broadcast it to all other clients. */
-                    String[] words = line.split("=", 2);
-                    synchronized (this) {
-                        publish(words[1]);
-                    }
-                } else if(line.startsWith("/read")) {
-                    System.out.println("called from"+this.clientName);
-                    synchronized (this) {
-                        for(PublicMessage msg : publicMessage) {
-                            this.outputStream.println(msg.getMessage());
-                        }
->>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
                     }
                 }
             }
@@ -172,7 +149,6 @@ public class Client extends Thread {
         } catch (IOException e) {
         }
     }
-<<<<<<< HEAD
 	private void displayTopicMessage(String[] topic) {
 		String topicType = topic[1];
 		for(PublicMessage msg : publicMessage) { //check for timeout to delete also
@@ -185,7 +161,4 @@ public class Client extends Thread {
 			this.outputStream.println(msg.getTopicType());
 		}
 	}
-=======
-
->>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
 }
