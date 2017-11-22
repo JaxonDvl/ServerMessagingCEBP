@@ -42,10 +42,10 @@ public class PublicMessage extends Message {
 	}
 	
 	public long getTimeout() {
-		return timeout;
+		return timeout+startTime;
 	}
 	
 	public boolean timeoutExpired(long time) {
-		return time - startTime < 0 ? true : false;
+		return time - (startTime+timeout) > 0 ? true : false;
     }
 }

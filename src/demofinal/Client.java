@@ -4,6 +4,8 @@ package demofinal;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -87,6 +89,9 @@ public class Client extends Thread {
       /* Start the conversation. */
             while (true) {
                 String line = inputStream.readLine();
+                //check for timeout to delete also
+                publicMessage.removeIf(msg -> msg.timeoutExpired(System.currentTimeMillis()));
+
                 if (line.startsWith("/exit")) {
                     break;
                 }
@@ -149,11 +154,20 @@ public class Client extends Thread {
         } catch (IOException e) {
         }
     }
-	private void displayTopicMessage(String[] topic) {
+	private synchronized void displayTopicMessage(String[] topic) {
 		String topicType = topic[1];
-		for(PublicMessage msg : publicMessage) { //check for timeout to delete also
-			if (topicType.equals(msg.getTopicType()))
-				this.outputStream.println(msg.getMessage());
+
+		for(Iterator<PublicMessage> itr = publicMessage.iterator() ; itr.hasNext() ;) { //check for timeout to delete also
+            PublicMessage msg = itr.next();
+            if (topicType.equals(msg.getTopicType())) {
+//                if(msg.timeoutExpired(System.currentTimeMillis())) {
+//                    itr.remove();
+//                }
+//                else {
+                    this.outputStream.println(msg.getMessage());
+//                }
+
+            }
 		}
 	}
 	private void displayAvailableTopics() {
