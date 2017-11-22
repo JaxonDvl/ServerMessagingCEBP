@@ -5,8 +5,8 @@ public class PrivateMessage extends Message {
     private String receiver;
     private String sender;
 
-    public PrivateMessage(String sender, String receiver, MessageType messageType, String message) {
-        super(messageType, message);
+    public PrivateMessage(String sender, String receiver, String message) {
+        super(message);
         this.receiver = receiver;
         this.sender = sender;
     }

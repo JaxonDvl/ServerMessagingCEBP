@@ -17,20 +17,29 @@ public class Client extends Thread {
 
     private Socket clientSocket = null;
     private final ArrayList<Client> clientList;
-    private int maxClientsCount;
+    private static final int maxClientsCount = 10;
     private BlockingQueue<PrivateMessage> privateMessage = new ArrayBlockingQueue<PrivateMessage>(5);
+<<<<<<< HEAD
+    private static List<PublicMessage> publicMessage = new ArrayList<PublicMessage>(maxClientsCount);
+    
+=======
     private static List<PublicMessage> publicMessage = new ArrayList<PublicMessage> (10);
+>>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
     public Client(Socket clientSocket, ArrayList<Client> clientList) {
         this.clientSocket = clientSocket;
         this.clientList = clientList;
-        maxClientsCount = clientList.size();
     }
     public synchronized void sendMessage(String sender, String receiver,String message){
-        PrivateMessage msg = new PrivateMessage(sender, receiver, MessageType.INFO , message);
+        PrivateMessage msg = new PrivateMessage(sender, receiver, message);
         this.privateMessage.offer(msg);
     }
+<<<<<<< HEAD
+    private void publish(String header, String message) {
+        PublicMessage msg = new PublicMessage(header, message);
+=======
     private void publish(String message) {
         PublicMessage msg = new PublicMessage(MessageType.INFO, message);
+>>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
         publicMessage.add(msg);
     }
     public void getMessage() {
@@ -101,6 +110,22 @@ public class Client extends Thread {
                         }
                     }
                 } else if(line.startsWith("/publish")) {
+<<<<<<< HEAD
+          /* The message is a topic, broadcast it to all other clients. */
+                    String[] topic = line.split("=", 3);
+                    synchronized (this) {
+                        publish(topic[1],topic[2]);
+                    }
+                } else if(line.startsWith("/read")) {
+                    synchronized (this) {
+                    	String topic[] = line.split("=", 2);
+                    	if (topic.length == 1) {
+							displayAvailableTopics();
+                    	}
+                    	else {
+                    		displayTopicMessage(topic);
+                    	}
+=======
           /* The message is public, broadcast it to all other clients. */
                     String[] words = line.split("=", 2);
                     synchronized (this) {
@@ -112,6 +137,7 @@ public class Client extends Thread {
                         for(PublicMessage msg : publicMessage) {
                             this.outputStream.println(msg.getMessage());
                         }
+>>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
                     }
                 }
             }
@@ -133,7 +159,7 @@ public class Client extends Thread {
             synchronized (this) {
                 for (Client client : clientThreads) {
                     if (client == this) {
-                        clientThreads.remove(this);
+                        clientList.remove(this); //self remove-> concurrent exception
                     }
                 }
             }
@@ -146,5 +172,20 @@ public class Client extends Thread {
         } catch (IOException e) {
         }
     }
+<<<<<<< HEAD
+	private void displayTopicMessage(String[] topic) {
+		String topicType = topic[1];
+		for(PublicMessage msg : publicMessage) { //check for timeout to delete also
+			if (topicType.equals(msg.getTopicType()))
+				this.outputStream.println(msg.getMessage());
+		}
+	}
+	private void displayAvailableTopics() {
+		for(PublicMessage msg : publicMessage) {
+			this.outputStream.println(msg.getTopicType());
+		}
+	}
+=======
 
+>>>>>>> 537e15c67ad5400317632c9fa8b6f0eb9ac095bd
 }
